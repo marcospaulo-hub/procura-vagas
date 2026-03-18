@@ -2,11 +2,10 @@ import httpx
 import os
 import json
 import re
-import google.generativeai as genai
+from google import genai
 from bs4 import BeautifulSoup
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-1.5-flash")
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 CAREERS_SLUGS = [
     "/careers", "/jobs", "/work-with-us", "/join-us",
@@ -35,12 +34,11 @@ def find_careers_url(domain: str) -> str | None:
 
 def extract_jobs_with_llm(html: str, company: str, source_url: str) -> list[dict]:
     soup = BeautifulSoup(html, "html.parser")
-    # Remove ruido: scripts, styles, nav, footer
     for tag in soup(["script", "style", "nav", "footer", "header"]):
         tag.decompose()
     clean_text = soup.get_text(separator="\n", strip=True)[:12000]
 
-    prompt = f"""
+    prompt = f\'\'\'
     Below is text extracted from the careers page of the company "{company}".
     Extract all job openings and return ONLY a valid JSON array.
     Each item must have:
@@ -52,12 +50,14 @@ def extract_jobs_with_llm(html: str, company: str, source_url: str) -> list[dict
 
     Text:
     {clean_text}
-    """
+    \'\'\'
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
         raw = response.text.strip()
-        # Remove markdown code blocks if present
         raw = re.sub(r"^```json\s*|^```\s*|\s*```$", "", raw, flags=re.MULTILINE).strip()
         jobs_data = json.loads(raw)
         result = []
@@ -71,7 +71,7 @@ def extract_jobs_with_llm(html: str, company: str, source_url: str) -> list[dict
                 "company": company,
                 "location": job.get("location", "Not specified"),
                 "url": job.get("url", source_url),
-                "content": f"{title} {job.get('location', '')}",
+                "content": f"{title} {job.get(\'location\', \'\')}", 
                 "source": "careers_page"
             })
         return result
