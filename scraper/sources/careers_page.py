@@ -38,19 +38,16 @@ def extract_jobs_with_llm(html: str, company: str, source_url: str) -> list[dict
         tag.decompose()
     clean_text = soup.get_text(separator="\n", strip=True)[:12000]
 
-    prompt = f\'\'\'
-    Below is text extracted from the careers page of the company "{company}".
-    Extract all job openings and return ONLY a valid JSON array.
-    Each item must have:
-    - "title": job title (string)
-    - "location": location or "Not specified" (string)
-    - "url": full URL if found, otherwise "{source_url}" (string)
-
-    If no jobs are found, return an empty array [].
-
-    Text:
-    {clean_text}
-    \'\'\'
+    prompt = (
+        "Below is text extracted from the careers page of the company " + repr(company) + ".\n"
+        "Extract all job openings and return ONLY a valid JSON array.\n"
+        "Each item must have:\n"
+        "- \"title\": job title (string)\n"
+        "- \"location\": location or \"Not specified\" (string)\n"
+        "- \"url\": full URL if found, otherwise " + repr(source_url) + " (string)\n\n"
+        "If no jobs are found, return an empty array [].\n\n"
+        "Text:\n" + clean_text
+    )
 
     try:
         response = client.models.generate_content(
@@ -71,7 +68,7 @@ def extract_jobs_with_llm(html: str, company: str, source_url: str) -> list[dict
                 "company": company,
                 "location": job.get("location", "Not specified"),
                 "url": job.get("url", source_url),
-                "content": f"{title} {job.get(\'location\', \'\')}", 
+                "content": f"{title} {job.get('location', '')}",
                 "source": "careers_page"
             })
         return result
