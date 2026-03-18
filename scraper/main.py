@@ -35,10 +35,10 @@ def run():
 
     relevant = [j for j in all_jobs if is_relevant(j)]
 
-    for job in relevant:
-        job["latam_status"] = classify(job)
+    for j in relevant:
+        j["latam_status"] = classify(j)
 
-    candidates = [j for j in relevant if job["latam_status"] != "rejected"]
+    candidates = [j for j in relevant if j["latam_status"] != "rejected"]
     seen = load_seen()
     new_jobs = filter_new(candidates, seen)
 
