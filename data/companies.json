@@ -84,12 +84,6 @@
     "domain": "fly.io"
   },
   {
-    "name": "Warpstream",
-    "greenhouse_id": null,
-    "lever_id": null,
-    "domain": "warpstream.com"
-  },
-  {
     "name": "Gitbook",
     "greenhouse_id": null,
     "lever_id": null,
